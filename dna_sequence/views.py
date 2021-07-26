@@ -2,6 +2,7 @@ import pdb
 from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.response import Response
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.http import JsonResponse
 from .serializers import DNASequenceSerializer
@@ -18,6 +19,7 @@ def dna_sequence(request):
 
 @api_view(('GET',))
 @renderer_classes((JSONRenderer,))
+@csrf_exempt
 def test_dna_sequence(request):
     sequence = DNASequence.objects.get(pk=2)
     serializer = DNASequenceSerializer(sequence)
