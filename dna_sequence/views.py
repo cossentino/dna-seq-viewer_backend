@@ -20,14 +20,12 @@ def dna_sequence(request):
 
 @api_view(('POST',))
 def save(request):
-    data = json.load(request.body)
-    pdb.set_trace()
-    sequence = DNASequence(request.body)
+    sequence = DNASequence(json.loads(request.body))
 
 
+@csrf_exempt
 @api_view(('GET',))
 @renderer_classes((JSONRenderer,))
-@csrf_exempt
 def test_dna_sequence(request):
     sequence = DNASequence.objects.get(pk=2)
     serializer = DNASequenceSerializer(sequence)
