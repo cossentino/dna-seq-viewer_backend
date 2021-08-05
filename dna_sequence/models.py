@@ -9,10 +9,15 @@ class DNASequence(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=1000, default="")
+    sequences = models.Manager()
 
-    class SequenceType(models.IntegerChoices):
-        DNA = 1
-        PROTEIN = 2
+    def __str__(self):
+        return self.name
 
-    sequence_type = models.IntegerField(
-        choices=SequenceType.choices, default=1)
+
+class ProteinSequence(models.Model):
+    raw_sequence = models.TextField(default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=1000, default="")

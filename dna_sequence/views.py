@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.shortcuts import render
 from django.http import JsonResponse
-from .serializers import DNASequenceSerializer
+from django.core.serializers import serialize
 from .models import DNASequence
 
 # Create your views here.
@@ -14,19 +14,19 @@ from .models import DNASequence
 
 def dna_sequence(request):
     sequence = DNASequence.objects[0]
-    serializer = DNASequenceSerializer(sequence)
-    return JsonResponse(serializer)
+
+
+@api_view(('GET',))
+@csrf_exempt
+def index(request):
+    sequences = list(DNASequence.sequences.values())
+    return JsonResponse({'data': sequences})
 
 
 @api_view(('POST',))
 def save(request):
-    sequence = DNASequence(json.loads(request.body))
-
-
-@csrf_exempt
-@api_view(('GET',))
-@renderer_classes((JSONRenderer,))
-def test_dna_sequence(request):
-    sequence = DNASequence.objects.get(pk=2)
-    serializer = DNASequenceSerializer(sequence)
-    return Response(serializer.data)
+    attrs = json.loads(request.body)
+    if attrs['sequence_type'] == '1':
+        del attrs['sequence_type']
+        sequence = DNASequence(**attrs)
+    pdb.set_trace()
