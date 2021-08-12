@@ -1,34 +1,15 @@
 import pdb
 import json
-from rest_framework.decorators import api_view, renderer_classes
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
-from django.forms.models import model_to_dict
-from django.shortcuts import render
-from django.http import JsonResponse, HttpResponseRedirect
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .renderers import UserJSONRenderer
 
-from .serializers import RegistrationSerializer, LoginSerializer
+from .serializers import RegistrationSerializer, LoginSerializer, UserSerializer
 
 # Create your views here.
-
-
-@api_view(('POST',))
-def login_view(request):
-    form_data = json.loads(request.body)
-    username = User.objects.get(email=form_data['email'].lower()).username
-    user = authenticate(
-        request, username=username, password=form_data['password'])
-    if user:
-        login(request, user)
-        resp = JsonResponse({'data': model_to_dict(user)})
-        return resp
-    else:
-        return JsonResponse({'data': 'error logging in'})
 
 
 class RegistrationAPIView(APIView):
@@ -56,7 +37,6 @@ class LoginAPIView(APIView):
 
     def post(self, request):
 
-        # pdb.set_trace()
         user = request.data.get('user', {})
 
         # Notice here that we do not call `serializer.save()` like we did for
@@ -65,5 +45,32 @@ class LoginAPIView(APIView):
         # handles everything we need.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = UserSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        # There is nothing to validate or save here. Instead, we just want the
+        # serializer to handle turning our `User` object into something that
+        # can be JSONified and sent to the client.
+        serializer = self.serializer_class(request.user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        serializer_data = request.data.get('user', {})
+
+        # Here is that serialize, validate, save pattern we talked about
+        # before.
+        serializer = self.serializer_class(
+            request.user, data=serializer_data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
