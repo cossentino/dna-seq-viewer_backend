@@ -1,9 +1,9 @@
 from django.urls import path
-from .views import login_view
 
+from .views import RegistrationAPIView, LoginAPIView
 
 app_name = 'registration'
-
 urlpatterns = [
-    path('users/login/', login_view, name="login"),
+    path('users/', RegistrationAPIView.as_view()),
+    path('users/login/', LoginAPIView.as_view())
 ]
