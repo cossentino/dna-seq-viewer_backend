@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-from corsheaders.defaults import default_methods, default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,14 +39,16 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # My Apps
+    'corsheaders',
+    'django_extensions',
     'dna_sequence',
     'registration',
-    'corsheaders',
 ]
 
 MIDDLEWARE = [
     # My middleware
-    'corsheaders.middleware.CorsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -59,19 +60,20 @@ MIDDLEWARE = [
 ]
 
 # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = list(default_methods)
-CORS_ALLOW_HEADERS = list(default_headers)
-CORS_ALLOWED_ORIGINS = [
-]
-# If this is used, then not need to use `CORS_ALLOW_ALL_ORIGINS = True`
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    'http://localhost:3000',
-]
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOW_METHODS = list(default_methods)
+# CORS_ALLOW_HEADERS = list(default_headers)
+# CORS_ALLOWED_ORIGINS = [
+# ]
+# # If this is used, then not need to use `CORS_ALLOW_ALL_ORIGINS = True`
+# CORS_ALLOWED_ORIGIN_REGEXES = [
+#     'http://localhost:3000',
+# ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',
+    'localhost:3000',
+    'http://localhost:3000/login',
 ]
 
 ROOT_URLCONF = 'dna_seq_viewer.urls'
@@ -148,3 +150,8 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# My added settings
+
+AUTH_USER_MODEL = 'registration.User'
+LOGIN_REDIRECT_URL = 'http://localhost:3000'

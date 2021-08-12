@@ -40,6 +40,7 @@ def index(request):
 @api_view(('POST',))
 def save(request):
     form_data = json.loads(request.body)
+    del form_data['sequence_type']
     fasta_header, fasta_seq = parse_fasta(form_data['raw_sequence'])
     form_data['fasta_header'], form_data['raw_sequence'] = fasta_header, fasta_seq
     seq = DNASequence.sequences.create(**form_data)
