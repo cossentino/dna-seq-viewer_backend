@@ -12,7 +12,7 @@ def validate_sequence(seq_string):
                 "We came across a character %s that is not valid" % char)
 
 
-class DNASequence(models.Model):
+class Sequence(models.Model):
     raw_sequence = models.TextField(default="", validators=[validate_sequence])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -24,10 +24,13 @@ class DNASequence(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        abstract = True
 
-class ProteinSequence(models.Model):
-    raw_sequence = models.TextField(default="")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=1000, default="")
+
+class DNASequence(Sequence):
+    pass
+
+
+class ProteinSequence(Sequence):
+    pass

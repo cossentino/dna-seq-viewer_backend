@@ -23,7 +23,6 @@ def parse_fasta(fasta_string):
         sequence = sequence + current_line
         current_line = buf.readline().rstrip()
     buf.close()
-    pdb.set_trace()
     return (header, sequence)
 
 
@@ -42,12 +41,6 @@ def index(request):
 def save(request):
     form_data = json.loads(request.body)
     fasta_header, fasta_seq = parse_fasta(form_data['raw_sequence'])
-    pdb.set_trace()
-    form_data['fasta_header'] = fasta_header
-    form_data['raw_sequence'] = fasta_seq
-    seq = DNASequence(**form_data)
-    try:
-        seq.save()
-    except ValidationError as e:
-        print(e)
+    form_data['fasta_header'], form_data['raw_sequence'] = fasta_header, fasta_seq
+    seq = DNASequence.sequences.create(**form_data)
     return HttpResponseRedirect('http://localhost:3000/sequences')

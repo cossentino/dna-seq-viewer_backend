@@ -15,8 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth.views import LoginView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('dna_sequence.urls', namespace="dna_sequence"))
+    path('', include('dna_sequence.urls', namespace="dna_sequence")),
+    path('users/', include('django.contrib.auth.urls'))
 ]
