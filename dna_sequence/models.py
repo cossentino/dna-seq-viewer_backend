@@ -19,6 +19,7 @@ class Sequence(models.Model):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=1000, default="")
     fasta_header = models.CharField(max_length=1000, default="")
+    user = models.ForeignKey('registration.User', on_delete=models.CASCADE)
     sequences = models.Manager()
 
     def __str__(self):
