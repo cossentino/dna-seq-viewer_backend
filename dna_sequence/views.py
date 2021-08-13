@@ -2,7 +2,8 @@ import pdb
 import json
 import io
 from rest_framework.renderers import JSONRenderer
-from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.decorators import api_view, renderer_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.shortcuts import render
@@ -31,6 +32,7 @@ def dna_sequence(request):
 
 
 @api_view(('GET',))
+@permission_classes([IsAuthenticated])
 @csrf_exempt
 def index(request):
     sequences = list(DNASequence.sequences.values())
