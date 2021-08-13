@@ -70,6 +70,9 @@ class JWTAuthentication(authentication.BaseAuthentication):
         # method below.
         return self._authenticate_credentials(request, token)
 
+    def current_user(self, request):
+        return self.authenticate(request)[0]
+
     def _authenticate_credentials(self, request, token):
         """
         Try to authenticate the given credentials. If authentication is

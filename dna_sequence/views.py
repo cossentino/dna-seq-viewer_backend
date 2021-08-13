@@ -1,49 +1,38 @@
 import pdb
 import json
 import io
-from rest_framework.renderers import JSONRenderer
-from rest_framework.decorators import api_view, renderer_classes, permission_classes
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
-from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
-from django.core.serializers import serialize
-from django.core.exceptions import ValidationError
+from dna_seq_viewer.core.services.processing import parse_fasta
+from dna_seq_viewer.core.services.authentication import current_user
+
 from .models import DNASequence
 
 # Create your views here.
 
 
-def parse_fasta(fasta_string):
-    """Takes in string representation of FASTA-formatted text file and returns 
-    2-tuple of (header, sequence)"""
-    buf = io.StringIO(fasta_string)
-    header, current_line, sequence = buf.readline().rstrip(), buf.readline().rstrip(), ""
-    while len(current_line) > 0:
-        sequence = sequence + current_line
-        current_line = buf.readline().rstrip()
-    buf.close()
-    return (header, sequence)
+class SequencesView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @csrf_exempt
+    def get(self, request):
+        user = current_user(request)
+        sequences = list(DNASequence.sequences.filter(pk=user.pk).values())
+        return JsonResponse({'data': sequences})
+
+    @csrf_exempt
+    def post(self, request):
+        pdb.set_trace()
+        form_data = json.loads(request.body)
+        del form_data['sequence_type']
+        form_data['user'] = 1
+        fasta_header, fasta_seq = parse_fasta(form_data['raw_sequence'])
+        form_data['fasta_header'], form_data['raw_sequence'] = fasta_header, fasta_seq
+        seq = DNASequence.sequences.create(**form_data)
+        return HttpResponseRedirect('http://localhost:3000/sequences')
 
 
-def dna_sequence(request):
-    sequence = DNASequence.objects[0]
-
-
-@api_view(('GET',))
-@permission_classes([IsAuthenticated])
-@csrf_exempt
-def index(request):
-    sequences = list(DNASequence.sequences.values())
-    return JsonResponse({'data': sequences})
-
-
-@api_view(('POST',))
-def save(request):
-    form_data = json.loads(request.body)
-    del form_data['sequence_type']
-    fasta_header, fasta_seq = parse_fasta(form_data['raw_sequence'])
-    form_data['fasta_header'], form_data['raw_sequence'] = fasta_header, fasta_seq
-    seq = DNASequence.sequences.create(**form_data)
-    return HttpResponseRedirect('http://localhost:3000/sequences')
+class SequenceView(APIView):
+    permission_classes = (IsAuthenticated,)

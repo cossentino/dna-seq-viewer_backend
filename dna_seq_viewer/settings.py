@@ -62,8 +62,8 @@ MIDDLEWARE = [
 
 # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_HEADERS = ['Token', 'Authorization']
-# CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = default_headers + ('X-CSRFToken', 'Authorization')
+CORS_ALLOW_CREDENTIALS = True
 # CORS_ALLOW_METHODS = list(default_methods)
 # CORS_ALLOWED_ORIGINS = [
 # ]
@@ -74,7 +74,7 @@ CORS_ALLOW_HEADERS = ['Token', 'Authorization']
 
 CSRF_TRUSTED_ORIGINS = [
     'localhost:3000',
-    'http://localhost:3000/login',
+    'localhost:3000/login',
 ]
 
 ROOT_URLCONF = 'dna_seq_viewer.urls'
@@ -154,6 +154,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # My added settings
 
+SESSION_COOKIE_SAMESITE = None
 AUTH_USER_MODEL = 'registration.User'
 LOGIN_REDIRECT_URL = 'http://localhost:3000'
 
