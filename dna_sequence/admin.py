@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import DNASequence, ProteinSequence
+from .models import GenBankSequence, FastaSequence
 
 # Register your models here.
-admin.site.register(DNASequence)
-admin.site.register(ProteinSequence)
+admin.site.register(GenBankSequence)
+admin.site.register(FastaSequence)

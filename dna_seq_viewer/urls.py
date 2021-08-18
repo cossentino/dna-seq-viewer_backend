@@ -20,7 +20,7 @@ from django.contrib.auth.views import LoginView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('dna_sequence.urls', namespace="dna_sequence")),
+    path('', include(('dna_sequence.urls', 'dna_sequence'), namespace="dna_sequence")),
     path('api/', include('registration.urls',
          namespace='registration')),
 ]

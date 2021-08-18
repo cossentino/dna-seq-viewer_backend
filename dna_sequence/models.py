@@ -1,37 +1,56 @@
-import pdb
+"""Models for NGS sequencing data"""
 from django.db import models
-from django.core.exceptions import ValidationError
 
 # Create your models here.
 
 
-def validate_sequence(seq_string):
-    for char in seq_string:
-        if char not in ['A', 'T', 'C', 'G']:
-            raise ValidationError(
-                "We came across a character %s that is not valid" % char)
-
-
 class Sequence(models.Model):
-    raw_sequence = models.TextField(default="")
+
+    """Abstract sequence model - parent for DNA/Protein Sequence models"""
+
+    DNA = 'D'
+    RNA = 'R'
+    PEPTIDE = 'P'
+
+    SEQUENCE_CHOICES = [
+        (DNA, 'dna'),
+        (RNA, 'rna'),
+        (PEPTIDE, 'peptide')
+    ]
+
+    seq = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=100)
-    description = models.CharField(max_length=1000, default="")
-    fasta_header = models.CharField(max_length=1000, default="")
+    notes = models.CharField(max_length=1000, default="")
+    seq_type = models.CharField(
+        max_length=10, choices=SEQUENCE_CHOICES, default=DNA)
     user = models.ForeignKey('registration.User', on_delete=models.CASCADE)
-    sequences = models.Manager()
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         abstract = True
 
 
-class DNASequence(Sequence):
-    pass
+class GenBankSequence(Sequence):
+    """GenBank protein/nucleotide sequence"""
 
 
-class ProteinSequence(Sequence):
-    pass
+class GenBankAnnotationSet(models.Model):
+    """Dictionary-like objects for holding GenBank file annotations"""
+    seq = models.ForeignKey('GenBankSequence', on_delete=models.CASCADE)
+    molecule_type = models.CharField("", max_length=50)
+    topology = models.CharField("", max_length=50)
+    date = models.CharField("", max_length=50)
+    gi = models.CharField("", max_length=50)
+    organism = models.CharField(max_length=1000)
+
+
+class FastaSequence(Sequence):
+    """Fasta protein/nucleotide sequence"""
+
+    header = models.CharField("", max_length=1000)
+    accession = models.CharField("", max_length=50)
+    organism = models.CharField(max_length=100)

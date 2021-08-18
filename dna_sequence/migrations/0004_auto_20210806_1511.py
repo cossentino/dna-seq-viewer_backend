@@ -26,6 +26,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='dnasequence',
             name='raw_sequence',
-            field=models.TextField(default='', validators=[dna_sequence.models.validate_sequence]),
+            field=models.TextField(default=''),
         ),
     ]
