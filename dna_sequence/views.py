@@ -1,14 +1,18 @@
 """Sequence views"""
 import json
+import sys
+import pdb
+from django.forms.models import model_to_dict
+from operator import itemgetter
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse, HttpResponseRedirect
-from dna_seq_viewer.core.services.processing import parse_fasta
+from django.http import JsonResponse
 from dna_seq_viewer.core.services.authentication import current_user
-from .models import GenBankSequence, FastaSequence
+from dna_seq_viewer.core.services.biopython.parse import Parser
+from registration.models import User
+from .models import Sequence, GenBankAnnotationSet
 
-# from .models import DNASequence, ProteinSequence
 
 # Create your views here.
 
@@ -23,36 +27,44 @@ class SequencesView(APIView):
     def get(self, request):
         """Retrieve all sequences for current user"""
         user = current_user(request)
-        sequences = list(GenBankSequence.objects.filter(user=user).values(
-        )) + list(FastaSequence.objects.filter(user=user).values())
+        sequences = list(Sequence.objects.filter(user=user).values(
+        ))
         return JsonResponse({'data': sequences})
 
     def post(self, request):
         """Save new sequence with user_id = current_user.id to database"""
         user = current_user(request)
         form_data = json.loads(request.body)
-        sequence_dict = form_data['sequence']
-        sequence_dict['user'] = user
-        fasta_header, fasta_seq = parse_fasta(sequence_dict['raw_sequence'])
-        sequence_dict['fasta_header'], sequence_dict['raw_sequence'] = fasta_header, fasta_seq
-        if form_data['sequence_type'] == '0':
-            GenBankSequence.objects.create(**sequence_dict)
-        else:
-            FastaSequence.objects.create(**sequence_dict)
-
-        return HttpResponseRedirect('http://localhost:3000/sequences')
+        input_file_format = form_data['input_file_format']
+        parser = Parser(form_data['raw_sequence'], input_file_format)
+        parser.parse()
+        name, description, seq_type = itemgetter(
+            'name', 'description', 'sequence_type')(form_data)
+        for r in parser.records:
+            del r.annotations['references']
+            s = Sequence(seq=str(r.seq), name=name,
+                         description=description, seq_type=seq_type, user=user)
+            s.save()
+            ga = GenBankAnnotationSet(**r.annotations, sequence=s)
+            try:
+                ga.save()
+                return JsonResponse({'data': 'ok'})
+            except:
+                return JsonResponse({"Unexpected error": sys.exc_info()[0]})
 
 
 class SequenceView(APIView):
     """Sequence show view"""
     permission_classes = (IsAuthenticated,)
 
-    @csrf_exempt
+    @ csrf_exempt
     def get(self, request, sequence_id):
         """Retrieve sequence by sequence id if belongs to signed-in user"""
         user = current_user(request)
-        sequence = list(GenBankSequence.objects.filter(
-            pk=sequence_id).values())[0]
-        if sequence.user is user:
-            return JsonResponse({'data': sequence})
-        return JsonResponse({'data': None})
+        seq = Sequence.objects.get(pk=sequence_id)
+        if user.id == seq.id:
+            anns = seq.annotations.first()
+            resp = JsonResponse(
+                {'data': {'main': model_to_dict(seq), 'annotations': model_to_dict(anns)}})
+            return resp
+        return JsonResponse({'error': 'you aint authorized'})

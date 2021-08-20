@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import GenBankSequence, FastaSequence
+from .models import Sequence, GenBankAnnotationSet
 
 # Register your models here.
-admin.site.register(GenBankSequence)
-admin.site.register(FastaSequence)
+admin.site.register(Sequence)
+admin.site.register(GenBankAnnotationSet)
