@@ -1,7 +1,6 @@
 """Sequence views"""
 import json
 import pdb
-from operator import itemgetter
 
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
@@ -17,9 +16,7 @@ from .models import GenBankAnnotationSet, Sequence
 
 
 class SequencesView(APIView):
-
     """Sequence views"""
-
     permission_classes = (IsAuthenticated,)
 
     @csrf_exempt
@@ -36,11 +33,12 @@ class SequencesView(APIView):
         data = json.loads(request.body)
         filetype = data['input_file_format']
         parser = Parser(data['raw_sequence'], filetype)
-        name, description, seq_type = itemgetter(
-            'name', 'description', 'sequence_type')(data)
         for rec in parser.records:
-            seq = Sequence(seq=str(rec.seq), name=name,
-                           description=description, seq_type=seq_type, user=user)
+            seq = Sequence(seq=str(rec.seq),
+                           name=data['name'],
+                           description=data['description'],
+                           seq_type=data['sequence_type'],
+                           user=user)
             annotations = GenBankAnnotationSet.new(
                 **rec.annotations, sequence=seq)
             seq.save()
@@ -52,14 +50,15 @@ class SequenceView(APIView):
     """Sequence show view"""
     permission_classes = (IsAuthenticated,)
 
-    @ csrf_exempt
+    @csrf_exempt
     def get(self, request, sequence_id):
         """Retrieve sequence by sequence id if belongs to signed-in user"""
         user = current_user(request)
         seq = Sequence.objects.get(pk=sequence_id)
         if user.id == seq.user.id:
-            anns = seq.annotations.first()
-            resp = JsonResponse(
-                {'data': {'main': model_to_dict(seq), 'annotations': model_to_dict(anns)}})
-            return resp
+            return JsonResponse(
+                {'data':
+                    {'main': model_to_dict(seq),
+                     'annotations': model_to_dict(seq.annotations.first())}
+                 })
         return JsonResponse({'error': 'you aint authorized'})

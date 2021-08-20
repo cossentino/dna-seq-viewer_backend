@@ -16,12 +16,5 @@ class Parser():
 
     def parse(self):
         stream = StringIO(self.file_string)
+        # pdb.set_trace()
         return list(SeqIO.parse(stream, self.filetype))
-
-    def record_dict(self, record):
-        pass
-
-    def get_accession(self, header):
-        regex = re.compile(r"(\W|\A)([A-Z]{1,2,3}_?\d+\.?\d*)")
-        match = regex.search(header)
-        return match[2] if match else None

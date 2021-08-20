@@ -2,5 +2,9 @@ from registration.backends import JWTAuthentication
 
 
 def current_user(request):
-    j = JWTAuthentication()
-    return j.authenticate(request)[0]
+    """
+        Input request should contain an Authorization header with content
+        in the form of "Token <token>". Outputs Django User instance
+        with corresponding token
+    """
+    return JWTAuthentication().authenticate(request)[0]
