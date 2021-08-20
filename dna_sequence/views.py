@@ -1,18 +1,17 @@
 """Sequence views"""
 import json
-import sys
 import pdb
-from django.forms.models import model_to_dict
 from operator import itemgetter
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from django.views.decorators.csrf import csrf_exempt
+
+from django.forms.models import model_to_dict
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from dna_seq_viewer.core.services.authentication import current_user
 from dna_seq_viewer.core.services.biopython.parse import Parser
-from registration.models import User
-from .models import Sequence, GenBankAnnotationSet
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 
+from .models import GenBankAnnotationSet, Sequence
 
 # Create your views here.
 
@@ -34,23 +33,19 @@ class SequencesView(APIView):
     def post(self, request):
         """Save new sequence with user_id = current_user.id to database"""
         user = current_user(request)
-        form_data = json.loads(request.body)
-        input_file_format = form_data['input_file_format']
-        parser = Parser(form_data['raw_sequence'], input_file_format)
-        parser.parse()
+        data = json.loads(request.body)
+        filetype = data['input_file_format']
+        parser = Parser(data['raw_sequence'], filetype)
         name, description, seq_type = itemgetter(
-            'name', 'description', 'sequence_type')(form_data)
-        for r in parser.records:
-            del r.annotations['references']
-            s = Sequence(seq=str(r.seq), name=name,
-                         description=description, seq_type=seq_type, user=user)
-            s.save()
-            ga = GenBankAnnotationSet(**r.annotations, sequence=s)
-            try:
-                ga.save()
-                return JsonResponse({'data': 'ok'})
-            except:
-                return JsonResponse({"Unexpected error": sys.exc_info()[0]})
+            'name', 'description', 'sequence_type')(data)
+        for rec in parser.records:
+            seq = Sequence(seq=str(rec.seq), name=name,
+                           description=description, seq_type=seq_type, user=user)
+            annotations = GenBankAnnotationSet.new(
+                **rec.annotations, sequence=seq)
+            seq.save()
+            annotations.save()
+            return JsonResponse({'data': 'ok'})
 
 
 class SequenceView(APIView):
@@ -62,7 +57,7 @@ class SequenceView(APIView):
         """Retrieve sequence by sequence id if belongs to signed-in user"""
         user = current_user(request)
         seq = Sequence.objects.get(pk=sequence_id)
-        if user.id == seq.id:
+        if user.id == seq.user.id:
             anns = seq.annotations.first()
             resp = JsonResponse(
                 {'data': {'main': model_to_dict(seq), 'annotations': model_to_dict(anns)}})

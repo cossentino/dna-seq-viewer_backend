@@ -1,10 +1,12 @@
 """Models for NGS sequencing data"""
+import pdb
 from django.db import models
+from dna_seq_viewer.core.services.filter import Filter
 
 # Create your models here.
 
 
-class Sequence(models.Model):
+class Sequence(models.Model, Filter):
 
     """Abstract sequence model - parent for DNA/Protein Sequence models"""
 
@@ -38,7 +40,7 @@ class Sequence(models.Model):
         return str(self.name)
 
 
-class GenBankAnnotationSet(models.Model):
+class GenBankAnnotationSet(models.Model, Filter):
     """Dictionary-like objects for holding GenBank file annotations"""
     molecule_type = models.CharField(default="", max_length=50)
     topology = models.CharField(default="", max_length=50)
