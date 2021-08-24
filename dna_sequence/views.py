@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from dna_seq_viewer.core.services.authentication import current_user
 from dna_seq_viewer.core.services.biopython.parse import Parser
+from dna_seq_viewer.core.services.protein_analysis import aa_breakdown
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
@@ -56,9 +57,11 @@ class SequenceView(APIView):
         user = current_user(request)
         seq = Sequence.objects.get(pk=sequence_id)
         if user.id == seq.user.id:
+            if request.GET.get('analysis'):
+                return JsonResponse({'data': aa_breakdown(seq.seq)})
             return JsonResponse(
                 {'data':
                     {'main': model_to_dict(seq),
-                     'annotations': model_to_dict(seq.annotations.first())}
+                        'annotations': model_to_dict(seq.annotations.first())}
                  })
         return JsonResponse({'error': 'you aint authorized'})
