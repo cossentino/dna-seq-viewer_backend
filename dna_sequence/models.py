@@ -58,3 +58,15 @@ class GenBankAnnotationSet(models.Model, Filter):
     taxonomy = models.JSONField(default=str)
     sequence = models.ForeignKey(
         "Sequence", on_delete=models.CASCADE, default=2, related_name="annotations")
+
+
+class SequenceFeature(models.Model, Filter):
+    """Corresponds to BioPython SeqFeature, simplified for easy database storage"""
+
+    sequence = models.ForeignKey(
+        "Sequence", on_delete=models.CASCADE, default=2, related_name="features")
+    start = models.IntegerField(default=0)
+    end = models.IntegerField(default=0)
+    feature_type = models.CharField(default="", max_length=50)
+    note = models.CharField(default="", max_length=1000)
+    db_xref = models.JSONField(default=str)

@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from .models import GenBankAnnotationSet, Sequence
+from .helpers import create_feature
 
 # Create your views here.
 
@@ -24,8 +25,7 @@ class SequencesView(APIView):
     def get(self, request):
         """Retrieve all sequences for current user"""
         user = current_user(request)
-        sequences = list(Sequence.objects.filter(user=user).values(
-        ))
+        sequences = list(Sequence.objects.filter(user=user).values())
         return JsonResponse({'data': sequences})
 
     def post(self, request):
@@ -40,10 +40,14 @@ class SequencesView(APIView):
                            description=data['description'],
                            seq_type=data['sequence_type'],
                            user=user)
-            annotations = GenBankAnnotationSet.new(
-                **rec.annotations, sequence=seq)
             seq.save()
-            annotations.save()
+            if seq.id:
+                annotations = GenBankAnnotationSet.new(
+                    **rec.annotations, sequence=seq)
+                annotations.save()
+                for feature in rec.features:
+                    create_feature(feature, seq)
+
             return JsonResponse({'data': 'ok'})
 
 
@@ -56,6 +60,7 @@ class SequenceView(APIView):
         """Retrieve sequence by sequence id if belongs to signed-in user"""
         user = current_user(request)
         seq = Sequence.objects.get(pk=sequence_id)
+        pdb.set_trace()
         if user.id == seq.user.id:
             if request.GET.get('analysis'):
                 return JsonResponse({'data': aa_breakdown(seq.seq)})
