@@ -16,5 +16,4 @@ class Parser():
 
     def parse(self):
         stream = StringIO(self.file_string)
-        # pdb.set_trace()
         return list(SeqIO.parse(stream, self.filetype))

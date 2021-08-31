@@ -8,7 +8,6 @@ import pdb
 def create_feature(seq_feature, seq):
     """Factor out creation of new SequenceFeature instance"""
 
-    pdb.set_trace()
     feature = SequenceFeature.new(
         start=int(seq_feature.location.start),
         end=int(seq_feature.location.end),

@@ -1,6 +1,9 @@
 """Sequence views"""
 import json
+from .models import GenBankAnnotationSet, Sequence
+
 import pdb
+
 
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
@@ -11,7 +14,6 @@ from dna_seq_viewer.core.services.protein_analysis import aa_breakdown
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
-from .models import GenBankAnnotationSet, Sequence
 from .helpers import create_feature
 
 # Create your views here.
@@ -60,13 +62,14 @@ class SequenceView(APIView):
         """Retrieve sequence by sequence id if belongs to signed-in user"""
         user = current_user(request)
         seq = Sequence.objects.get(pk=sequence_id)
-        pdb.set_trace()
         if user.id == seq.user.id:
             if request.GET.get('analysis'):
                 return JsonResponse({'data': aa_breakdown(seq.seq)})
-            return JsonResponse(
+            resp = JsonResponse(
                 {'data':
                     {'main': model_to_dict(seq),
-                        'annotations': model_to_dict(seq.annotations.first())}
+                     'annotations': model_to_dict(seq.annotations.first()),
+                     'features': {i: model_to_dict(f) for i, f in enumerate(seq.features.all())}}
                  })
+            return resp
         return JsonResponse({'error': 'you aint authorized'})
