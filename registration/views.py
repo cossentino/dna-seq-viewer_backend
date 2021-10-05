@@ -11,6 +11,8 @@ from .serializers import RegistrationSerializer, LoginSerializer, UserSerializer
 # Create your views here.
 
 
+
+
 class RegistrationAPIView(APIView):
     # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)

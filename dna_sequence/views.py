@@ -6,8 +6,9 @@ import pdb
 
 
 from django.forms.models import model_to_dict
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views import View
 from dna_seq_viewer.core.services.authentication import current_user
 from dna_seq_viewer.core.services.biopython.parse import Parser
 from dna_seq_viewer.core.services.protein_analysis import aa_breakdown
@@ -16,7 +17,14 @@ from rest_framework.views import APIView
 
 from .helpers import create_feature
 
+import datetime
+
 # Create your views here.
+
+def current_datetime(request):
+    now = datetime.datetime.now()
+    html = "<html><body>It is now %s.</body></html>" % now
+    return HttpResponse(html)
 
 
 class SequencesView(APIView):
