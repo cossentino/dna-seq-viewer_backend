@@ -37,7 +37,6 @@ class LoginAPIView(APIView):
     serializer_class = LoginSerializer
 
     def post(self, request):
-
         user = request.data.get('user', {})
 
         # Notice here that we do not call `serializer.save()` like we did for
