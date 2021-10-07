@@ -11,6 +11,8 @@ from .serializers import RegistrationSerializer, LoginSerializer, UserSerializer
 # Create your views here.
 
 
+
+
 class RegistrationAPIView(APIView):
     # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)
@@ -35,7 +37,6 @@ class LoginAPIView(APIView):
     serializer_class = LoginSerializer
 
     def post(self, request):
-
         user = request.data.get('user', {})
 
         # Notice here that we do not call `serializer.save()` like we did for
